@@ -174,3 +174,91 @@ class ADLaneState:
     departed_at: Optional[float]
     lane_paused: bool
 
+
+@dataclass
+class ADEpochLedger:
+    epoch_id: int
+    opened_at: float
+    closed_at: Optional[float]
+    total_runs: int
+    prize_pool_wei: int
+    leader: Optional[str]
+
+
+@dataclass
+class ADEventRow:
+    tag: str
+    payload: Dict[str, Any]
+    block_tick: int
+    ts: float
+
+
+@dataclass
+class ADAccessState:
+    warden: str
+    pending_warden: Optional[str]
+    lane_paused: bool
+    bootstrap_block: int
+
+AD_CHECKPOINT_CATALOG: Tuple[ADCheckpointSpec, ...] = (
+    ADCheckpointSpec("CP-NEON-001", 420, 12, "NEON", ADCheckpointKind(0)),
+    ADCheckpointSpec("CP-DOCK-002", 457, 17, "DOCK", ADCheckpointKind(2)),
+    ADCheckpointSpec("CP-RAMP-003", 494, 22, "RAMP", ADCheckpointKind(0)),
+    ADCheckpointSpec("CP-TUNL-004", 531, 27, "TUNL", ADCheckpointKind(2)),
+    ADCheckpointSpec("CP-SKY-005", 568, 32, "SKY", ADCheckpointKind(0)),
+    ADCheckpointSpec("CP-GRID-006", 605, 37, "GRID", ADCheckpointKind(2)),
+    ADCheckpointSpec("CP-PIER-007", 642, 42, "PIER", ADCheckpointKind(0)),
+    ADCheckpointSpec("CP-ALLEY-008", 679, 47, "ALLEY", ADCheckpointKind(2)),
+    ADCheckpointSpec("CP-NEON-009", 716, 52, "NEON", ADCheckpointKind(0)),
+    ADCheckpointSpec("CP-DOCK-010", 753, 57, "DOCK", ADCheckpointKind(2)),
+    ADCheckpointSpec("CP-RAMP-011", 790, 62, "RAMP", ADCheckpointKind(0)),
+    ADCheckpointSpec("CP-TUNL-012", 827, 67, "TUNL", ADCheckpointKind(2)),
+    ADCheckpointSpec("CP-SKY-013", 864, 72, "SKY", ADCheckpointKind(0)),
+    ADCheckpointSpec("CP-GRID-014", 901, 77, "GRID", ADCheckpointKind(2)),
+    ADCheckpointSpec("CP-PIER-015", 938, 82, "PIER", ADCheckpointKind(0)),
+    ADCheckpointSpec("CP-ALLEY-016", 975, 16, "ALLEY", ADCheckpointKind(3)),
+    ADCheckpointSpec("CP-NEON-017", 1012, 21, "NEON", ADCheckpointKind(1)),
+    ADCheckpointSpec("CP-DOCK-018", 1049, 26, "DOCK", ADCheckpointKind(3)),
+    ADCheckpointSpec("CP-RAMP-019", 1086, 31, "RAMP", ADCheckpointKind(1)),
+    ADCheckpointSpec("CP-TUNL-020", 1123, 36, "TUNL", ADCheckpointKind(3)),
+    ADCheckpointSpec("CP-SKY-021", 1160, 41, "SKY", ADCheckpointKind(1)),
+    ADCheckpointSpec("CP-GRID-022", 1197, 46, "GRID", ADCheckpointKind(3)),
+    ADCheckpointSpec("CP-PIER-023", 1234, 51, "PIER", ADCheckpointKind(1)),
+    ADCheckpointSpec("CP-ALLEY-024", 1271, 56, "ALLEY", ADCheckpointKind(3)),
+    ADCheckpointSpec("CP-NEON-025", 1308, 61, "NEON", ADCheckpointKind(1)),
+    ADCheckpointSpec("CP-DOCK-026", 455, 66, "DOCK", ADCheckpointKind(1)),
+    ADCheckpointSpec("CP-RAMP-027", 492, 71, "RAMP", ADCheckpointKind(3)),
+    ADCheckpointSpec("CP-TUNL-028", 529, 76, "TUNL", ADCheckpointKind(1)),
+    ADCheckpointSpec("CP-SKY-029", 566, 81, "SKY", ADCheckpointKind(3)),
+    ADCheckpointSpec("CP-GRID-030", 603, 15, "GRID", ADCheckpointKind(2)),
+    ADCheckpointSpec("CP-PIER-031", 640, 20, "PIER", ADCheckpointKind(0)),
+    ADCheckpointSpec("CP-ALLEY-032", 677, 25, "ALLEY", ADCheckpointKind(2)),
+    ADCheckpointSpec("CP-NEON-033", 714, 30, "NEON", ADCheckpointKind(0)),
+    ADCheckpointSpec("CP-DOCK-034", 751, 35, "DOCK", ADCheckpointKind(2)),
+    ADCheckpointSpec("CP-RAMP-035", 788, 40, "RAMP", ADCheckpointKind(0)),
+    ADCheckpointSpec("CP-TUNL-036", 825, 45, "TUNL", ADCheckpointKind(2)),
+    ADCheckpointSpec("CP-SKY-037", 862, 50, "SKY", ADCheckpointKind(0)),
+    ADCheckpointSpec("CP-GRID-038", 899, 55, "GRID", ADCheckpointKind(2)),
+    ADCheckpointSpec("CP-PIER-039", 936, 60, "PIER", ADCheckpointKind(0)),
+    ADCheckpointSpec("CP-ALLEY-040", 973, 65, "ALLEY", ADCheckpointKind(2)),
+    ADCheckpointSpec("CP-NEON-041", 1010, 70, "NEON", ADCheckpointKind(0)),
+    ADCheckpointSpec("CP-DOCK-042", 1047, 75, "DOCK", ADCheckpointKind(2)),
+    ADCheckpointSpec("CP-RAMP-043", 1084, 80, "RAMP", ADCheckpointKind(0)),
+    ADCheckpointSpec("CP-TUNL-044", 1121, 14, "TUNL", ADCheckpointKind(3)),
+    ADCheckpointSpec("CP-SKY-045", 1158, 19, "SKY", ADCheckpointKind(1)),
+    ADCheckpointSpec("CP-GRID-046", 1195, 24, "GRID", ADCheckpointKind(3)),
+    ADCheckpointSpec("CP-PIER-047", 1232, 29, "PIER", ADCheckpointKind(1)),
+    ADCheckpointSpec("CP-ALLEY-048", 1269, 34, "ALLEY", ADCheckpointKind(3)),
+)
+
+class AnonDriverEngine:
+    """Night courier lanes: register, depart, clear checkpoints, settle epochs."""
+
+    def __init__(
+        self,
+        warden: str = AD_ADDRESS_A,
+        vault_lane: str = AD_VAULT_LANE,
+        oracle_beacon: str = AD_ORACLE_BEACON,
+        relay_hub: str = AD_RELAY_HUB,
+        fee_desk: str = AD_FEE_DESK,
+    ) -> None:
