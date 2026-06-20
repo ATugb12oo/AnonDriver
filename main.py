@@ -878,3 +878,91 @@ class AnonDriverPlatform:
 
     def api_depart(self, lane_id: int, warden: str) -> Dict[str, Any]:
         self._engine.depart_lane(lane_id, warden)
+        lane = self._engine.lane_state(lane_id)
+        return {"laneId": lane_id, "phase": lane.phase if lane else None}
+
+    def api_clear_checkpoint(self, lane_id: int, wallet: str) -> Dict[str, Any]:
+        idx = self._engine.clear_checkpoint(lane_id, wallet)
+        prof = self._engine.driver_profile(wallet)
+        return {"checkpointIndex": idx, "score": prof.score if prof else 0}
+
+    def api_tick(self, steps: int = 1) -> Dict[str, Any]:
+        tick = self._engine.tick(steps)
+        return {"globalTick": tick}
+
+    def api_leaderboard(self, depth: int = 16) -> List[Dict[str, Any]]:
+        rows = self._engine.leaderboard(depth)
+        return [{"wallet": w, "score": s, "pseudonym": p} for w, s, p in rows]
+
+    def api_config(self) -> Dict[str, Any]:
+        eng = self._engine
+        return {
+            "warden": eng.warden(),
+            "lanePaused": eng.lane_paused(),
+            "digest": eng.config_digest(),
+            "anchors": eng.anchor_snapshot(),
+            "catalogSize": ad_catalog_size(),
+            "epochId": eng._epoch_id,
+        }
+
+    def api_events(self, limit: int = 32) -> List[Dict[str, Any]]:
+        return [asdict(e) for e in self._engine.event_log(limit)]
+
+
+def create_platform() -> AnonDriverPlatform:
+    return AnonDriverPlatform(AnonDriverEngine())
+
+
+def validate_platform_config() -> bool:
+    addrs = [
+        AD_ADDRESS_A,
+        AD_ADDRESS_B,
+        AD_ADDRESS_C,
+        AD_ADDRESS_D,
+        AD_VAULT_LANE,
+        AD_ORACLE_BEACON,
+        AD_RELAY_HUB,
+        AD_FEE_DESK,
+    ]
+    if len(addrs) != len(set(a.lower() for a in addrs)):
+        return False
+    if not all(_ad_valid_address(a) for a in addrs):
+        return False
+    seeds = [AD_DOMAIN_SEED, AD_ROUTE_DIGEST, AD_HEAT_SALT, AD_EPOCH_MARK]
+    if len(seeds) != len(set(s.lower() for s in seeds)):
+        return False
+    if not all(_ad_valid_hex32(s) for s in seeds):
+        return False
+    total_bp = AD_VAULT_SHARE_BP + AD_FEE_SHARE_BP + AD_RUNNER_SHARE_BP
+    return total_bp == AD_BP_DENOM
+
+
+def run_quick_smoke_test() -> Dict[str, Any]:
+    plat = create_platform()
+    w = AD_ADDRESS_A
+    d1 = AD_ADDRESS_B
+    d2 = AD_ADDRESS_C
+    plat.api_register(d1, "neon-ghost", AD_ENTRY_FEE_WEI)
+    plat.api_register(d2, "dock-runner", AD_ENTRY_FEE_WEI)
+    lane = plat.api_open_lane(w)["laneId"]
+    plat.api_join_lane(lane, d1, AD_ENTRY_FEE_WEI)
+    plat.api_join_lane(lane, d2, AD_ENTRY_FEE_WEI)
+    plat.api_depart(lane, w)
+    plat.api_clear_checkpoint(lane, d1)
+    plat.api_tick(5)
+    return {
+        "ok": validate_platform_config(),
+        "laneId": lane,
+        "leaderboard": plat.api_leaderboard(4),
+        "digest": plat.engine.config_digest(),
+    }
+
+
+def export_state_json(engine: AnonDriverEngine) -> str:
+    payload = {
+        "warden": engine.warden(),
+        "tick": engine.global_tick(),
+        "leaderboard": engine.leaderboard(8),
+        "digest": engine.config_digest(),
+    }
+    return json.dumps(payload, indent=2)
