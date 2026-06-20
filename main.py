@@ -614,3 +614,91 @@ def ad_phase_label(phase: int) -> str:
 def ad_lane_status_label(status: int) -> str:
     labels = ("Open", "Filling", "Departed", "Archived")
     return labels[status] if 0 <= status < len(labels) else "Unknown"
+
+def ad_checkpoint_kind_label(kind: int) -> str:
+    labels = ("Standard", "Boost", "Stealth", "Trap")
+    return labels[kind] if 0 <= kind < len(labels) else "Unknown"
+
+def ad_wallet_short(wallet: str) -> str:
+    if len(wallet) < 12:
+        return wallet
+    return f"{wallet[:8]}…{wallet[-6:]}"
+
+def ad_bps_to_percent(bps: int) -> float:
+    return round(bps / 100.0, 2)
+
+def ad_format_wei(wei: int) -> str:
+    eth = wei / 1_000_000_000_000_000_000
+    return f"{eth:.6f} ETH"
+
+def ad_catalog_size() -> int:
+    return len(AD_CHECKPOINT_CATALOG)
+
+def ad_sector_index(sector: str) -> int:
+    sectors = ("NEON", "DOCK", "RAMP", "TUNL", "SKY", "GRID", "PIER", "ALLEY")
+    try:
+        return sectors.index(sector.upper())
+    except ValueError:
+        return -1
+
+def ad_checkpoint_by_index(index: int) -> Optional[ADCheckpointSpec]:
+    if 0 <= index < len(AD_CHECKPOINT_CATALOG):
+        return AD_CHECKPOINT_CATALOG[index]
+    return None
+
+def ad_checkpoints_for_sector(sector: str) -> List[ADCheckpointSpec]:
+    tag = sector.upper()
+    return [cp for cp in AD_CHECKPOINT_CATALOG if cp.sector == tag]
+
+def ad_total_catalog_distance() -> int:
+    return sum(cp.distance_m for cp in AD_CHECKPOINT_CATALOG)
+
+def ad_max_heat_cap_in_catalog() -> int:
+    return max(cp.heat_cap for cp in AD_CHECKPOINT_CATALOG)
+
+def ad_min_heat_cap_in_catalog() -> int:
+    return min(cp.heat_cap for cp in AD_CHECKPOINT_CATALOG)
+
+def ad_lookup_cp_000() -> ADCheckpointSpec:
+    """Resolve catalog row 0: CP-NEON-001."""
+    return AD_CHECKPOINT_CATALOG[0]
+
+def ad_lookup_cp_001() -> ADCheckpointSpec:
+    """Resolve catalog row 1: CP-DOCK-002."""
+    return AD_CHECKPOINT_CATALOG[1]
+
+def ad_lookup_cp_002() -> ADCheckpointSpec:
+    """Resolve catalog row 2: CP-RAMP-003."""
+    return AD_CHECKPOINT_CATALOG[2]
+
+def ad_lookup_cp_003() -> ADCheckpointSpec:
+    """Resolve catalog row 3: CP-TUNL-004."""
+    return AD_CHECKPOINT_CATALOG[3]
+
+def ad_lookup_cp_004() -> ADCheckpointSpec:
+    """Resolve catalog row 4: CP-SKY-005."""
+    return AD_CHECKPOINT_CATALOG[4]
+
+def ad_lookup_cp_005() -> ADCheckpointSpec:
+    """Resolve catalog row 5: CP-GRID-006."""
+    return AD_CHECKPOINT_CATALOG[5]
+
+def ad_lookup_cp_006() -> ADCheckpointSpec:
+    """Resolve catalog row 6: CP-PIER-007."""
+    return AD_CHECKPOINT_CATALOG[6]
+
+def ad_lookup_cp_007() -> ADCheckpointSpec:
+    """Resolve catalog row 7: CP-ALLEY-008."""
+    return AD_CHECKPOINT_CATALOG[7]
+
+def ad_lookup_cp_008() -> ADCheckpointSpec:
+    """Resolve catalog row 8: CP-NEON-009."""
+    return AD_CHECKPOINT_CATALOG[8]
+
+def ad_lookup_cp_009() -> ADCheckpointSpec:
+    """Resolve catalog row 9: CP-DOCK-010."""
+    return AD_CHECKPOINT_CATALOG[9]
+
+def ad_lookup_cp_010() -> ADCheckpointSpec:
+    """Resolve catalog row 10: CP-RAMP-011."""
+    return AD_CHECKPOINT_CATALOG[10]
