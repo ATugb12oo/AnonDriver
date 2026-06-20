@@ -86,3 +86,91 @@ class DrvLane_ZeroAddress(Exception):
 
 
 class DrvLane_LaneMissing(Exception):
+    pass
+
+
+class DrvLane_DriverMissing(Exception):
+    pass
+
+
+class DrvLane_LaneFull(Exception):
+    pass
+
+
+class DrvLane_NotEnoughDrivers(Exception):
+    pass
+
+
+class DrvLane_FuelEmpty(Exception):
+    pass
+
+
+class DrvLane_HeatCritical(Exception):
+    pass
+
+
+class DrvLane_CooldownActive(Exception):
+    pass
+
+
+class DrvLane_CheckpointLocked(Exception):
+    pass
+
+
+class DrvLane_EntryTooLow(Exception):
+    pass
+
+
+class DrvLane_PendingWardenUnset(Exception):
+    pass
+
+
+class DrvLane_PseudonymTaken(Exception):
+    pass
+
+
+class DrvLane_RunNotActive(Exception):
+    pass
+
+
+class DrvLane_EpochClosed(Exception):
+    pass
+
+
+class DrvLane_InvalidBasisPoints(Exception):
+    pass
+@dataclass
+class ADCheckpointSpec:
+    name: str
+    distance_m: int
+    heat_cap: int
+    sector: str
+    kind: ADCheckpointKind = ADCheckpointKind.STANDARD
+
+
+@dataclass
+class ADDriverProfile:
+    wallet: str
+    pseudonym: str
+    fuel: int
+    heat: int
+    score: int
+    checkpoints_cleared: int
+    epoch_id: int
+    joined_at: float
+    cooldown_until_tick: int = 0
+
+
+@dataclass
+class ADLaneState:
+    lane_id: int
+    curator: str
+    status: ADLaneStatus
+    phase: ADRunPhase
+    drivers: List[str]
+    checkpoint_index: int
+    entry_fee_wei: int
+    opened_at: float
+    departed_at: Optional[float]
+    lane_paused: bool
+
