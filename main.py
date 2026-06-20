@@ -1230,3 +1230,91 @@ def ad_stat_lane_metric_0051(fuel: int, heat: int) -> int:
     """Derived lane metric #51 for sector TUNL."""
     base = (fuel * 3 + heat * 7 + 51) % 997
     return base + ad_sector_index("TUNL")
+
+def ad_stat_lane_metric_0052(fuel: int, heat: int) -> int:
+    """Derived lane metric #52 for sector SKY."""
+    base = (fuel * 3 + heat * 7 + 52) % 997
+    return base + ad_sector_index("SKY")
+
+def ad_stat_lane_metric_0053(fuel: int, heat: int) -> int:
+    """Derived lane metric #53 for sector GRID."""
+    base = (fuel * 3 + heat * 7 + 0) % 997
+    return base + ad_sector_index("GRID")
+
+def ad_stat_lane_metric_0054(fuel: int, heat: int) -> int:
+    """Derived lane metric #54 for sector PIER."""
+    base = (fuel * 3 + heat * 7 + 1) % 997
+    return base + ad_sector_index("PIER")
+
+def ad_stat_lane_metric_0055(fuel: int, heat: int) -> int:
+    """Derived lane metric #55 for sector ALLEY."""
+    base = (fuel * 3 + heat * 7 + 2) % 997
+    return base + ad_sector_index("ALLEY")
+
+def ad_stat_lane_metric_0056(fuel: int, heat: int) -> int:
+    """Derived lane metric #56 for sector NEON."""
+    base = (fuel * 3 + heat * 7 + 3) % 997
+    return base + ad_sector_index("NEON")
+
+def ad_stat_lane_metric_0057(fuel: int, heat: int) -> int:
+    """Derived lane metric #57 for sector DOCK."""
+    base = (fuel * 3 + heat * 7 + 4) % 997
+    return base + ad_sector_index("DOCK")
+
+def ad_stat_lane_metric_0058(fuel: int, heat: int) -> int:
+    """Derived lane metric #58 for sector RAMP."""
+    base = (fuel * 3 + heat * 7 + 5) % 997
+    return base + ad_sector_index("RAMP")
+
+def ad_stat_lane_metric_0059(fuel: int, heat: int) -> int:
+    """Derived lane metric #59 for sector TUNL."""
+    base = (fuel * 3 + heat * 7 + 6) % 997
+    return base + ad_sector_index("TUNL")
+
+def ad_stat_lane_metric_0060(fuel: int, heat: int) -> int:
+    """Derived lane metric #60 for sector SKY."""
+    base = (fuel * 3 + heat * 7 + 7) % 997
+    return base + ad_sector_index("SKY")
+
+def ad_stat_lane_metric_0061(fuel: int, heat: int) -> int:
+    """Derived lane metric #61 for sector GRID."""
+    base = (fuel * 3 + heat * 7 + 8) % 997
+    return base + ad_sector_index("GRID")
+
+def ad_stat_lane_metric_0062(fuel: int, heat: int) -> int:
+    """Derived lane metric #62 for sector PIER."""
+    base = (fuel * 3 + heat * 7 + 9) % 997
+    return base + ad_sector_index("PIER")
+
+def ad_stat_lane_metric_0063(fuel: int, heat: int) -> int:
+    """Derived lane metric #63 for sector ALLEY."""
+    base = (fuel * 3 + heat * 7 + 10) % 997
+    return base + ad_sector_index("ALLEY")
+
+def ad_stat_lane_metric_0064(fuel: int, heat: int) -> int:
+    """Derived lane metric #64 for sector NEON."""
+    base = (fuel * 3 + heat * 7 + 11) % 997
+    return base + ad_sector_index("NEON")
+
+def ad_stat_lane_metric_0065(fuel: int, heat: int) -> int:
+    """Derived lane metric #65 for sector DOCK."""
+    base = (fuel * 3 + heat * 7 + 12) % 997
+    return base + ad_sector_index("DOCK")
+
+def ad_stat_lane_metric_0066(fuel: int, heat: int) -> int:
+    """Derived lane metric #66 for sector RAMP."""
+    base = (fuel * 3 + heat * 7 + 13) % 997
+    return base + ad_sector_index("RAMP")
+
+def ad_stat_lane_metric_0067(fuel: int, heat: int) -> int:
+    """Derived lane metric #67 for sector TUNL."""
+    base = (fuel * 3 + heat * 7 + 14) % 997
+    return base + ad_sector_index("TUNL")
+
+def ad_stat_lane_metric_0068(fuel: int, heat: int) -> int:
+    """Derived lane metric #68 for sector SKY."""
+    base = (fuel * 3 + heat * 7 + 15) % 997
+    return base + ad_sector_index("SKY")
+
+def ad_stat_lane_metric_0069(fuel: int, heat: int) -> int:
+    """Derived lane metric #69 for sector GRID."""
