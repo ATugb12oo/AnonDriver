@@ -350,3 +350,91 @@ class AnonDriverEngine:
             prize_pool_wei=0,
             leader=None,
         )
+        self._epochs[self._epoch_id] = ep
+        self._emit("EpochOpened", {"epochId": self._epoch_id})
+
+    def close_epoch(self, caller: str) -> int:
+        self._require_warden(caller)
+        cur = self._epochs[self._epoch_id]
+        cur.closed_at = time.time()
+        leader = self._leader_for_epoch(self._epoch_id)
+        cur.leader = leader
+        self._emit("EpochClosed", {"epochId": self._epoch_id, "leader": leader})
+        self._epoch_id += 1
+        self._open_epoch()
+        return self._epoch_id - 1
+
+    def register_driver(self, wallet: str, pseudonym: str, entry_wei: int = 0) -> str:
+        self._require_lane_active()
+        if not _ad_valid_address(wallet):
+            raise DrvLane_ZeroAddress()
+        key = wallet.strip().lower()
+        nick = pseudonym.strip()[:AD_PSEUDONYM_MAX_LEN]
+        if not nick:
+            nick = f"ghost-{secrets.token_hex(3)}"
+        nick_key = nick.lower()
+        if nick_key in self._pseudonyms and self._pseudonyms[nick_key] != key:
+            raise DrvLane_PseudonymTaken()
+        if key in self._drivers:
+            return key
+        if entry_wei > 0 and entry_wei < AD_ENTRY_FEE_WEI:
+            raise DrvLane_EntryTooLow()
+        self._pseudonyms[nick_key] = key
+        prof = ADDriverProfile(
+            wallet=wallet,
+            pseudonym=nick,
+            fuel=AD_DEFAULT_FUEL,
+            heat=0,
+            score=0,
+            checkpoints_cleared=0,
+            epoch_id=self._epoch_id,
+            joined_at=time.time(),
+        )
+        self._drivers[key] = prof
+        if entry_wei > 0:
+            ep = self._epochs[self._epoch_id]
+            ep.prize_pool_wei += entry_wei
+        self._emit("DriverRegistered", {"wallet": wallet, "pseudonym": nick})
+        return key
+
+    def open_lane(self, caller: str, entry_fee_wei: int = AD_ENTRY_FEE_WEI) -> int:
+        self._require_warden(caller)
+        self._require_lane_active()
+        fee = entry_fee_wei if AD_ENTRY_FEE_WEI <= entry_fee_wei <= AD_MAX_ENTRY_FEE_WEI else AD_ENTRY_FEE_WEI
+        self._lane_counter += 1
+        lid = self._lane_counter
+        self._lanes[lid] = ADLaneState(
+            lane_id=lid,
+            curator=caller,
+            status=ADLaneStatus.OPEN,
+            phase=ADRunPhase.IDLE,
+            drivers=[],
+            checkpoint_index=0,
+            entry_fee_wei=fee,
+            opened_at=time.time(),
+            departed_at=None,
+            lane_paused=False,
+        )
+        self._emit("LaneOpened", {"laneId": lid, "feeWei": fee})
+        return lid
+
+    def join_lane(self, lane_id: int, wallet: str, paid_wei: int) -> None:
+        self._require_lane_active()
+        lane = self._lanes.get(lane_id)
+        if lane is None:
+            raise DrvLane_LaneMissing()
+        if lane.lane_paused or lane.status != ADLaneStatus.OPEN:
+            raise DrvLane_LanePaused()
+        key = wallet.strip().lower()
+        if key not in self._drivers:
+            raise DrvLane_DriverMissing()
+        if len(lane.drivers) >= AD_MAX_DRIVERS_PER_LANE:
+            raise DrvLane_LaneFull()
+        if paid_wei < lane.entry_fee_wei:
+            raise DrvLane_EntryTooLow()
+        if key not in lane.drivers:
+            lane.drivers.append(key)
+        if len(lane.drivers) >= AD_MIN_DRIVERS_TO_DEPART:
+            lane.status = ADLaneStatus.FILLING
+        self._emit("LaneJoined", {"laneId": lane_id, "wallet": wallet})
+
