@@ -262,3 +262,91 @@ class AnonDriverEngine:
         relay_hub: str = AD_RELAY_HUB,
         fee_desk: str = AD_FEE_DESK,
     ) -> None:
+        if not _ad_valid_address(warden):
+            raise DrvLane_ZeroAddress()
+        self._access = ADAccessState(
+            warden=warden,
+            pending_warden=None,
+            lane_paused=False,
+            bootstrap_block=int(time.time()),
+        )
+        self._vault_lane = vault_lane
+        self._oracle_beacon = oracle_beacon
+        self._relay_hub = relay_hub
+        self._fee_desk = fee_desk
+        self._drivers: Dict[str, ADDriverProfile] = {}
+        self._lanes: Dict[int, ADLaneState] = {}
+        self._epochs: Dict[int, ADEpochLedger] = {}
+        self._events: List[ADEventRow] = []
+        self._pseudonyms: Dict[str, str] = {}
+        self._global_tick = 0
+        self._lane_counter = 0
+        self._epoch_id = 1
+        self._open_epoch()
+
+    def _require_warden(self, caller: str) -> None:
+        if caller.strip().lower() != self._access.warden.strip().lower():
+            raise DrvLane_WardenOnly()
+
+    def _require_lane_active(self) -> None:
+        if self._access.lane_paused:
+            raise DrvLane_LanePaused()
+
+    def _emit(self, tag: str, payload: Dict[str, Any]) -> None:
+        self._events.append(
+            ADEventRow(tag=tag, payload=dict(payload), block_tick=self._global_tick, ts=time.time())
+        )
+
+    def warden(self) -> str:
+        return self._access.warden
+
+    def pending_warden(self) -> Optional[str]:
+        return self._access.pending_warden
+
+    def lane_paused(self) -> bool:
+        return self._access.lane_paused
+
+    def global_tick(self) -> int:
+        return self._global_tick
+
+    def propose_warden(self, caller: str, next_warden: str) -> None:
+        self._require_warden(caller)
+        if not _ad_valid_address(next_warden):
+            raise DrvLane_ZeroAddress()
+        self._access.pending_warden = next_warden
+        self._emit("WardenProposed", {"next": next_warden})
+
+    def accept_warden(self, caller: str) -> None:
+        pending = self._access.pending_warden
+        if pending is None:
+            raise DrvLane_PendingWardenUnset()
+        if caller.strip().lower() != pending.strip().lower():
+            raise DrvLane_WardenOnly()
+        old = self._access.warden
+        self._access.warden = pending
+        self._access.pending_warden = None
+        self._emit("WardenAccepted", {"previous": old, "current": pending})
+
+    def set_lane_paused(self, caller: str, paused: bool) -> None:
+        self._require_warden(caller)
+        self._access.lane_paused = paused
+        self._emit("LanePauseToggled", {"paused": paused})
+
+    def tick(self, steps: int = 1) -> int:
+        steps = max(1, min(steps, 64))
+        for _ in range(steps):
+            self._global_tick += 1
+            for drv in self._drivers.values():
+                if drv.heat > 0:
+                    drv.heat = max(0, drv.heat - AD_HEAT_DECAY_PER_TICK)
+        return self._global_tick
+
+    def _open_epoch(self) -> None:
+        ep = ADEpochLedger(
+            epoch_id=self._epoch_id,
+            opened_at=time.time(),
+            closed_at=None,
+            total_runs=0,
+            prize_pool_wei=0,
+            leader=None,
+        )
