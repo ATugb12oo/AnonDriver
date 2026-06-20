@@ -438,3 +438,91 @@ class AnonDriverEngine:
             lane.status = ADLaneStatus.FILLING
         self._emit("LaneJoined", {"laneId": lane_id, "wallet": wallet})
 
+    def depart_lane(self, lane_id: int, caller: str) -> None:
+        lane = self._lanes.get(lane_id)
+        if lane is None:
+            raise DrvLane_LaneMissing()
+        self._require_warden(caller)
+        self._require_lane_active()
+        if len(lane.drivers) < AD_MIN_DRIVERS_TO_DEPART:
+            raise DrvLane_NotEnoughDrivers()
+        lane.status = ADLaneStatus.DEPARTED
+        lane.phase = ADRunPhase.EN_ROUTE
+        lane.departed_at = time.time()
+        ep = self._epochs[self._epoch_id]
+        ep.total_runs += 1
+        self._emit("LaneDeparted", {"laneId": lane_id, "drivers": list(lane.drivers)})
+
+    def clear_checkpoint(self, lane_id: int, wallet: str) -> int:
+        lane = self._lanes.get(lane_id)
+        if lane is None:
+            raise DrvLane_LaneMissing()
+        if lane.phase not in (ADRunPhase.EN_ROUTE, ADRunPhase.PURSUIT):
+            raise DrvLane_RunNotActive()
+        key = wallet.strip().lower()
+        if key not in lane.drivers:
+            raise DrvLane_DriverMissing()
+        drv = self._drivers[key]
+        if drv.cooldown_until_tick > self._global_tick:
+            raise DrvLane_CooldownActive()
+        if drv.fuel <= 0:
+            raise DrvLane_FuelEmpty()
+        idx = lane.checkpoint_index
+        if idx >= len(AD_CHECKPOINT_CATALOG):
+            lane.phase = ADRunPhase.SETTLED
+            return idx
+        spec = AD_CHECKPOINT_CATALOG[idx]
+        if drv.heat > spec.heat_cap:
+            raise DrvLane_HeatCritical()
+        fuel_cost = AD_FUEL_PER_CHECKPOINT + (1 if spec.kind == ADCheckpointKind.TRAP else 0)
+        drv.fuel -= fuel_cost
+        bonus = AD_SCORE_PER_CHECKPOINT
+        if spec.kind == ADCheckpointKind.BOOST:
+            bonus += 22
+        elif spec.kind == ADCheckpointKind.STEALTH:
+            drv.heat = max(0, drv.heat - 8)
+        elif spec.kind == ADCheckpointKind.TRAP:
+            drv.heat += AD_HEAT_ESCALATE_ON_SKIP // 2
+        heat_bonus = min(AD_SCORE_HEAT_BONUS_CAP, max(0, spec.heat_cap - drv.heat))
+        drv.score += bonus + heat_bonus // 4
+        drv.checkpoints_cleared += 1
+        lane.checkpoint_index += 1
+        drv.cooldown_until_tick = self._global_tick + AD_COOLDOWN_TICKS
+        if drv.heat > 55:
+            lane.phase = ADRunPhase.PURSUIT
+        if lane.checkpoint_index >= len(AD_CHECKPOINT_CATALOG):
+            lane.phase = ADRunPhase.SETTLED
+            lane.status = ADLaneStatus.ARCHIVED
+        self._emit(
+            "CheckpointCleared",
+            {"laneId": lane_id, "wallet": wallet, "index": idx, "score": drv.score},
+        )
+        return lane.checkpoint_index
+
+    def skip_checkpoint(self, lane_id: int, wallet: str) -> None:
+        lane = self._lanes.get(lane_id)
+        if lane is None:
+            raise DrvLane_LaneMissing()
+        key = wallet.strip().lower()
+        if key not in lane.drivers:
+            raise DrvLane_DriverMissing()
+        drv = self._drivers[key]
+        drv.heat += AD_HEAT_ESCALATE_ON_SKIP
+        lane.phase = ADRunPhase.PURSUIT
+        self._emit("CheckpointSkipped", {"laneId": lane_id, "wallet": wallet, "heat": drv.heat})
+
+    def settle_lane(self, lane_id: int, caller: str) -> Dict[str, Any]:
+        lane = self._lanes.get(lane_id)
+        if lane is None:
+            raise DrvLane_LaneMissing()
+        self._require_warden(caller)
+        if lane.phase != ADRunPhase.SETTLED:
+            raise DrvLane_RunNotActive()
+        scores = {k: self._drivers[k].score for k in lane.drivers if k in self._drivers}
+        winner = max(scores, key=scores.get) if scores else None
+        payout = self._split_payout(lane.entry_fee_wei * len(lane.drivers))
+        lane.phase = ADRunPhase.COOLDOWN
+        self._emit("LaneSettled", {"laneId": lane_id, "winner": winner, "payout": payout})
+        return {"winner": winner, "scores": scores, "payout": payout}
+
+    def _split_payout(self, gross_wei: int) -> Dict[str, int]:
