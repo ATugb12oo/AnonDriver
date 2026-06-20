@@ -526,3 +526,91 @@ class AnonDriverEngine:
         return {"winner": winner, "scores": scores, "payout": payout}
 
     def _split_payout(self, gross_wei: int) -> Dict[str, int]:
+        if gross_wei <= 0:
+            return {"vault": 0, "fee": 0, "runners": 0}
+        vault = gross_wei * AD_VAULT_SHARE_BP // AD_BP_DENOM
+        fee = gross_wei * AD_FEE_SHARE_BP // AD_BP_DENOM
+        runners = gross_wei - vault - fee
+        total = AD_VAULT_SHARE_BP + AD_FEE_SHARE_BP + AD_RUNNER_SHARE_BP
+        if total != AD_BP_DENOM:
+            raise DrvLane_InvalidBasisPoints()
+        return {"vault": vault, "fee": fee, "runners": runners}
+
+    def _leader_for_epoch(self, epoch_id: int) -> Optional[str]:
+        best: Optional[str] = None
+        best_score = -1
+        for key, drv in self._drivers.items():
+            if drv.epoch_id == epoch_id and drv.score > best_score:
+                best_score = drv.score
+                best = key
+        return best
+
+    def leaderboard(self, depth: int = AD_LEADERBOARD_DEPTH) -> List[Tuple[str, int, str]]:
+        depth = max(1, min(depth, AD_LEADERBOARD_DEPTH))
+        rows = sorted(
+            self._drivers.values(),
+            key=lambda d: (-d.score, d.checkpoints_cleared, d.joined_at),
+        )[:depth]
+        return [(d.wallet, d.score, d.pseudonym) for d in rows]
+
+    def driver_profile(self, wallet: str) -> Optional[ADDriverProfile]:
+        return self._drivers.get(wallet.strip().lower())
+
+    def lane_state(self, lane_id: int) -> Optional[ADLaneState]:
+        return self._lanes.get(lane_id)
+
+    def epoch_state(self, epoch_id: int) -> Optional[ADEpochLedger]:
+        return self._epochs.get(epoch_id)
+
+    def event_log(self, limit: int = 100) -> List[ADEventRow]:
+        limit = max(1, min(limit, 500))
+        return self._events[-limit:]
+
+    def config_digest(self) -> str:
+        h_a = hashlib.sha256(
+            (AD_DOMAIN_SEED + AD_VAULT_LANE + AD_ORACLE_BEACON).encode()
+        ).hexdigest()
+        h_b = hashlib.sha256(
+            (AD_ROUTE_DIGEST + AD_HEAT_SALT + AD_EPOCH_MARK).encode()
+        ).hexdigest()
+        return hashlib.sha256((h_a + h_b).encode()).hexdigest()
+
+    def anchor_snapshot(self) -> Dict[str, str]:
+        return {
+            "addressA": AD_ADDRESS_A,
+            "addressB": AD_ADDRESS_B,
+            "addressC": AD_ADDRESS_C,
+            "addressD": AD_ADDRESS_D,
+            "vaultLane": self._vault_lane,
+            "oracleBeacon": self._oracle_beacon,
+            "relayHub": self._relay_hub,
+            "feeDesk": self._fee_desk,
+        }
+
+def _ad_valid_address(addr: str) -> bool:
+    if not addr or not addr.startswith("0x"):
+        return False
+    body = addr[2:]
+    if len(body) != 40:
+        return False
+    try:
+        int(body, 16)
+    except ValueError:
+        return False
+    return body != "0" * 40
+
+def _ad_valid_hex32(h: str) -> bool:
+    if not h.startswith("0x"):
+        return False
+    body = h[2:]
+    return len(body) == 64 and all(c in "0123456789abcdefABCDEF" for c in body)
+
+def ad_phase_label(phase: int) -> str:
+    labels = (
+        "Idle", "Staging", "EnRoute", "Pursuit", "Cooldown", "Settled"
+    )
+    return labels[phase] if 0 <= phase < len(labels) else "Unknown"
+
+def ad_lane_status_label(status: int) -> str:
+    labels = ("Open", "Filling", "Departed", "Archived")
+    return labels[status] if 0 <= status < len(labels) else "Unknown"
