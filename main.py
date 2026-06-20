@@ -702,3 +702,91 @@ def ad_lookup_cp_009() -> ADCheckpointSpec:
 def ad_lookup_cp_010() -> ADCheckpointSpec:
     """Resolve catalog row 10: CP-RAMP-011."""
     return AD_CHECKPOINT_CATALOG[10]
+
+def ad_lookup_cp_011() -> ADCheckpointSpec:
+    """Resolve catalog row 11: CP-TUNL-012."""
+    return AD_CHECKPOINT_CATALOG[11]
+
+def ad_lookup_cp_012() -> ADCheckpointSpec:
+    """Resolve catalog row 12: CP-SKY-013."""
+    return AD_CHECKPOINT_CATALOG[12]
+
+def ad_lookup_cp_013() -> ADCheckpointSpec:
+    """Resolve catalog row 13: CP-GRID-014."""
+    return AD_CHECKPOINT_CATALOG[13]
+
+def ad_lookup_cp_014() -> ADCheckpointSpec:
+    """Resolve catalog row 14: CP-PIER-015."""
+    return AD_CHECKPOINT_CATALOG[14]
+
+def ad_lookup_cp_015() -> ADCheckpointSpec:
+    """Resolve catalog row 15: CP-ALLEY-016."""
+    return AD_CHECKPOINT_CATALOG[15]
+
+def ad_lookup_cp_016() -> ADCheckpointSpec:
+    """Resolve catalog row 16: CP-NEON-017."""
+    return AD_CHECKPOINT_CATALOG[16]
+
+def ad_lookup_cp_017() -> ADCheckpointSpec:
+    """Resolve catalog row 17: CP-DOCK-018."""
+    return AD_CHECKPOINT_CATALOG[17]
+
+def ad_lookup_cp_018() -> ADCheckpointSpec:
+    """Resolve catalog row 18: CP-RAMP-019."""
+    return AD_CHECKPOINT_CATALOG[18]
+
+def ad_lookup_cp_019() -> ADCheckpointSpec:
+    """Resolve catalog row 19: CP-TUNL-020."""
+    return AD_CHECKPOINT_CATALOG[19]
+
+def ad_lookup_cp_020() -> ADCheckpointSpec:
+    """Resolve catalog row 20: CP-SKY-021."""
+    return AD_CHECKPOINT_CATALOG[20]
+
+def ad_lookup_cp_021() -> ADCheckpointSpec:
+    """Resolve catalog row 21: CP-GRID-022."""
+    return AD_CHECKPOINT_CATALOG[21]
+
+def ad_lookup_cp_022() -> ADCheckpointSpec:
+    """Resolve catalog row 22: CP-PIER-023."""
+    return AD_CHECKPOINT_CATALOG[22]
+
+def ad_lookup_cp_023() -> ADCheckpointSpec:
+    """Resolve catalog row 23: CP-ALLEY-024."""
+    return AD_CHECKPOINT_CATALOG[23]
+
+def ad_lookup_cp_024() -> ADCheckpointSpec:
+    """Resolve catalog row 24: CP-NEON-025."""
+    return AD_CHECKPOINT_CATALOG[24]
+
+def ad_lookup_cp_025() -> ADCheckpointSpec:
+    """Resolve catalog row 25: CP-DOCK-026."""
+    return AD_CHECKPOINT_CATALOG[25]
+
+def ad_lookup_cp_026() -> ADCheckpointSpec:
+    """Resolve catalog row 26: CP-RAMP-027."""
+    return AD_CHECKPOINT_CATALOG[26]
+
+def ad_lookup_cp_027() -> ADCheckpointSpec:
+    """Resolve catalog row 27: CP-TUNL-028."""
+    return AD_CHECKPOINT_CATALOG[27]
+
+def ad_lookup_cp_028() -> ADCheckpointSpec:
+    """Resolve catalog row 28: CP-SKY-029."""
+    return AD_CHECKPOINT_CATALOG[28]
+
+def ad_lookup_cp_029() -> ADCheckpointSpec:
+    """Resolve catalog row 29: CP-GRID-030."""
+    return AD_CHECKPOINT_CATALOG[29]
+
+def ad_lookup_cp_030() -> ADCheckpointSpec:
+    """Resolve catalog row 30: CP-PIER-031."""
+    return AD_CHECKPOINT_CATALOG[30]
+
+def ad_lookup_cp_031() -> ADCheckpointSpec:
+    """Resolve catalog row 31: CP-ALLEY-032."""
+    return AD_CHECKPOINT_CATALOG[31]
+
+def ad_lookup_cp_032() -> ADCheckpointSpec:
+    """Resolve catalog row 32: CP-NEON-033."""
+    return AD_CHECKPOINT_CATALOG[32]
