@@ -790,3 +790,91 @@ def ad_lookup_cp_031() -> ADCheckpointSpec:
 def ad_lookup_cp_032() -> ADCheckpointSpec:
     """Resolve catalog row 32: CP-NEON-033."""
     return AD_CHECKPOINT_CATALOG[32]
+
+def ad_lookup_cp_033() -> ADCheckpointSpec:
+    """Resolve catalog row 33: CP-DOCK-034."""
+    return AD_CHECKPOINT_CATALOG[33]
+
+def ad_lookup_cp_034() -> ADCheckpointSpec:
+    """Resolve catalog row 34: CP-RAMP-035."""
+    return AD_CHECKPOINT_CATALOG[34]
+
+def ad_lookup_cp_035() -> ADCheckpointSpec:
+    """Resolve catalog row 35: CP-TUNL-036."""
+    return AD_CHECKPOINT_CATALOG[35]
+
+def ad_lookup_cp_036() -> ADCheckpointSpec:
+    """Resolve catalog row 36: CP-SKY-037."""
+    return AD_CHECKPOINT_CATALOG[36]
+
+def ad_lookup_cp_037() -> ADCheckpointSpec:
+    """Resolve catalog row 37: CP-GRID-038."""
+    return AD_CHECKPOINT_CATALOG[37]
+
+def ad_lookup_cp_038() -> ADCheckpointSpec:
+    """Resolve catalog row 38: CP-PIER-039."""
+    return AD_CHECKPOINT_CATALOG[38]
+
+def ad_lookup_cp_039() -> ADCheckpointSpec:
+    """Resolve catalog row 39: CP-ALLEY-040."""
+    return AD_CHECKPOINT_CATALOG[39]
+
+def ad_lookup_cp_040() -> ADCheckpointSpec:
+    """Resolve catalog row 40: CP-NEON-041."""
+    return AD_CHECKPOINT_CATALOG[40]
+
+def ad_lookup_cp_041() -> ADCheckpointSpec:
+    """Resolve catalog row 41: CP-DOCK-042."""
+    return AD_CHECKPOINT_CATALOG[41]
+
+def ad_lookup_cp_042() -> ADCheckpointSpec:
+    """Resolve catalog row 42: CP-RAMP-043."""
+    return AD_CHECKPOINT_CATALOG[42]
+
+def ad_lookup_cp_043() -> ADCheckpointSpec:
+    """Resolve catalog row 43: CP-TUNL-044."""
+    return AD_CHECKPOINT_CATALOG[43]
+
+def ad_lookup_cp_044() -> ADCheckpointSpec:
+    """Resolve catalog row 44: CP-SKY-045."""
+    return AD_CHECKPOINT_CATALOG[44]
+
+def ad_lookup_cp_045() -> ADCheckpointSpec:
+    """Resolve catalog row 45: CP-GRID-046."""
+    return AD_CHECKPOINT_CATALOG[45]
+
+def ad_lookup_cp_046() -> ADCheckpointSpec:
+    """Resolve catalog row 46: CP-PIER-047."""
+    return AD_CHECKPOINT_CATALOG[46]
+
+def ad_lookup_cp_047() -> ADCheckpointSpec:
+    """Resolve catalog row 47: CP-ALLEY-048."""
+    return AD_CHECKPOINT_CATALOG[47]
+
+class AnonDriverPlatform:
+    '''Facade for UI / RPC adapters.'''
+
+    def __init__(self, engine: Optional[AnonDriverEngine] = None) -> None:
+        self._engine = engine or AnonDriverEngine()
+
+    @property
+    def engine(self) -> AnonDriverEngine:
+        return self._engine
+
+    def api_register(self, wallet: str, pseudonym: str, entry_wei: int = AD_ENTRY_FEE_WEI) -> Dict[str, Any]:
+        key = self._engine.register_driver(wallet, pseudonym, entry_wei)
+        prof = self._engine.driver_profile(key)
+        return {"driverKey": key, "profile": asdict(prof) if prof else {}}
+
+    def api_open_lane(self, warden: str, fee_wei: int = AD_ENTRY_FEE_WEI) -> Dict[str, Any]:
+        lid = self._engine.open_lane(warden, fee_wei)
+        lane = self._engine.lane_state(lid)
+        return {"laneId": lid, "lane": asdict(lane) if lane else {}}
+
+    def api_join_lane(self, lane_id: int, wallet: str, paid_wei: int) -> Dict[str, Any]:
+        self._engine.join_lane(lane_id, wallet, paid_wei)
+        lane = self._engine.lane_state(lane_id)
+        return {"laneId": lane_id, "drivers": lane.drivers if lane else []}
+
+    def api_depart(self, lane_id: int, warden: str) -> Dict[str, Any]:
+        self._engine.depart_lane(lane_id, warden)
